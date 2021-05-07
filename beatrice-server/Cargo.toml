@@ -1,0 +1,27 @@
+[package]
+name = "beatrice-server"
+version = "0.1.0"
+authors = ["Koki Kato <koki.kato1994@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+beatrice-proto = { path = "../beatrice-proto" }
+repc = { path = "../../repc/repc" }
+anyhow = "1.0"
+tokio = { version = "1.0", features = ["macros", "rt-multi-thread"] }
+tonic = "0.4"
+rand = "0.8"
+bytes = "1.0"
+clap = "3.0.0-beta.2"
+serde = { version = "1.0", features = ["derive"] }
+serde_yaml = "0.8"
+tracing = "0.1"
+tracing-subscriber = "0.2"
+bitvec = "0.21"
+rustc-hash = "1.1"
+
+[lib]
+name = "beatrice_server"
+path = "src/lib.rs"

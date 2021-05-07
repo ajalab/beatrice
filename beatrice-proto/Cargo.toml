@@ -1,0 +1,15 @@
+[package]
+name = "beatrice-proto"
+version = "0.1.0"
+authors = ["Koki Kato <koki.kato1994@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+tonic = "0.4"
+prost = "0.7"
+repc = { path = "../../repc/repc" }
+repc-client = { path = "../../repc/repc-client" }
+bytes = "1.0"
+
+[build-dependencies]
+repc-build = { path = "../../repc/repc-build" }

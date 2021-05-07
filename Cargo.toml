@@ -1,0 +1,7 @@
+[workspace]
+
+members = [
+    "beatrice-client",
+    "beatrice-server",
+    "beatrice-proto"
+]

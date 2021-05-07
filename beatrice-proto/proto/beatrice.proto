@@ -1,0 +1,27 @@
+syntax = "proto3";
+package beatrice;
+
+service Beatrice {
+  rpc Put(PutRequest) returns (PutResponse);
+  rpc Get(GetRequest) returns (GetResponse);
+  rpc Flush(FlushRequest) returns (FlushResponse);
+}
+
+message PutRequest {
+  bytes row = 1;
+  uint64 timestamp = 2;
+  bytes value = 3;
+}
+
+message PutResponse {}
+
+message GetRequest { bytes row = 1; }
+
+message GetResponse {
+  uint64 timestamp = 1;
+  bytes value = 2;
+}
+
+message FlushRequest { bool cache = 1; }
+
+message FlushResponse {}
