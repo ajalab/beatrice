@@ -67,8 +67,8 @@ impl Beatrice for BeatriceState {
         Ok(Response::new(DeleteResponse {}))
     }
 
-    async fn flush(&mut self, _req: FlushRequest) -> Result<Response<FlushResponse>, Status> {
-        self.store.flush(true);
+    async fn flush(&mut self, req: FlushRequest) -> Result<Response<FlushResponse>, Status> {
+        self.store.flush(req.cache);
         Ok(Response::new(FlushResponse {}))
     }
 }
