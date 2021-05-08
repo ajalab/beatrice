@@ -5,6 +5,12 @@ use std::{error, fmt};
 pub struct Parser {}
 
 impl Parser {
+    const TOKEN_PUT: &'static str = "put";
+    const TOKEN_GET: &'static str = "get";
+    const TOKEN_DELETE: &'static str = "delete";
+    const TOKEN_FLUSH: &'static str = "flush";
+    const TOKEN_EXIT: &'static str = "exit";
+
     pub fn new() -> Self {
         Parser {}
     }
@@ -20,10 +26,11 @@ impl Parser {
         let cmd = tokens.next().ok_or_else(|| ParseError::Empty)?;
 
         match cmd {
-            "put" => self.parse_put(tokens),
-            "get" => self.parse_get(tokens),
-            "flush" => self.parse_flush(tokens),
-            "exit" => self.parse_exit(tokens),
+            Self::TOKEN_PUT => self.parse_put(tokens),
+            Self::TOKEN_GET => self.parse_get(tokens),
+            Self::TOKEN_DELETE => self.parse_delete(tokens),
+            Self::TOKEN_FLUSH => self.parse_flush(tokens),
+            Self::TOKEN_EXIT => self.parse_exit(tokens),
             _ => Err(ParseError::Unknown(cmd.to_string())),
         }
     }
@@ -60,7 +67,7 @@ impl Parser {
                 })
             }
             _ => Err(ParseError::WrongArgNum {
-                cmd: "put",
+                cmd: Self::TOKEN_PUT,
                 expected: 2,
                 actual: n,
             }),
@@ -72,7 +79,7 @@ impl Parser {
         let n = args.len();
         if n != 1 {
             return Err(ParseError::WrongArgNum {
-                cmd: "get",
+                cmd: Self::TOKEN_GET,
                 expected: 1,
                 actual: n,
             });
@@ -80,6 +87,44 @@ impl Parser {
         let row = Bytes::from(args.pop().unwrap().to_string());
 
         Ok(Command::Get { row })
+    }
+
+    fn parse_delete<'a>(
+        &self,
+        tokens: impl Iterator<Item = &'a str>,
+    ) -> Result<Command, ParseError> {
+        let mut args = tokens.collect::<Vec<_>>();
+        let n = args.len();
+        match n {
+            1 => {
+                let row = Bytes::from(args.pop().unwrap().to_string());
+                Ok(Command::Delete {
+                    row,
+                    timestamp: None,
+                })
+            }
+            2 => {
+                let timestamp =
+                    args.pop()
+                        .unwrap()
+                        .parse::<u64>()
+                        .map_err(|e| ParseError::ArgParseFailed {
+                            arg: "timestamp",
+                            pos: 2,
+                            e: e.into(),
+                        })?;
+                let row = Bytes::from(args.pop().unwrap().to_string());
+                Ok(Command::Delete {
+                    row,
+                    timestamp: Some(timestamp),
+                })
+            }
+            _ => Err(ParseError::WrongArgNum {
+                cmd: Self::TOKEN_DELETE,
+                expected: 1,
+                actual: n,
+            }),
+        }
     }
 
     fn parse_flush<'a>(
@@ -101,7 +146,7 @@ impl Parser {
                 Ok(Command::Flush { cache })
             }
             _ => Err(ParseError::WrongArgNum {
-                cmd: "flush",
+                cmd: Self::TOKEN_FLUSH,
                 expected: 2,
                 actual: n,
             }),
@@ -112,7 +157,7 @@ impl Parser {
         let n = tokens.count();
         if n != 0 {
             return Err(ParseError::WrongArgNum {
-                cmd: "exit",
+                cmd: Self::TOKEN_EXIT,
                 expected: 0,
                 actual: n,
             });

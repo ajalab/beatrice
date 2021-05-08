@@ -9,7 +9,7 @@ use self::{
 };
 use anyhow::Result;
 use beatrice_proto::beatrice::{
-    beatrice_client::BeatriceClient, FlushRequest, GetRequest, PutRequest,
+    beatrice_client::BeatriceClient, DeleteRequest, FlushRequest, GetRequest, PutRequest,
 };
 use bytes::Bytes;
 use tonic::transport::Channel;
@@ -63,6 +63,7 @@ where
                     value,
                 } => self.put(row, timestamp, value).await,
                 Command::Get { row } => self.get(row).await,
+                Command::Delete { row, timestamp } => self.delete(row, timestamp).await,
                 Command::Flush { cache } => self.flush(cache).await,
                 Command::Exit => {
                     break;
@@ -79,6 +80,16 @@ where
             value: value.to_vec(),
         };
         if let Err(status) = self.client.put(req).await {
+            self.prompter.print_error(status.to_string());
+        }
+    }
+
+    async fn delete(&mut self, row: Bytes, timestamp: Option<u64>) {
+        let req = DeleteRequest {
+            row: row.to_vec(),
+            timestamp: timestamp.unwrap_or(0),
+        };
+        if let Err(status) = self.client.delete(req).await {
             self.prompter.print_error(status.to_string());
         }
     }

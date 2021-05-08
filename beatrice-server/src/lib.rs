@@ -6,8 +6,8 @@ mod store;
 use self::{model::Row, store::Store};
 pub use beatrice_proto::beatrice::beatrice_server::BeatriceStateMachine;
 use beatrice_proto::beatrice::{
-    beatrice_server::Beatrice, FlushRequest, FlushResponse, GetRequest, GetResponse, PutRequest,
-    PutResponse,
+    beatrice_server::Beatrice, DeleteRequest, DeleteResponse, FlushRequest, FlushResponse,
+    GetRequest, GetResponse, PutRequest, PutResponse,
 };
 use bytes::Bytes;
 use std::{convert::TryFrom, time::SystemTime};
@@ -27,6 +27,20 @@ impl BeatriceState {
 
 #[repc::async_trait]
 impl Beatrice for BeatriceState {
+    async fn put(&mut self, req: PutRequest) -> Result<Response<PutResponse>, Status> {
+        let row = Row::new(Bytes::from(req.row));
+        let timestamp = match req.timestamp {
+            0 => get_current_timestamp_millis().map_err(|e| {
+                Status::internal(format!("failed to get current time: error={:?}", e))
+            })?,
+            t => t,
+        };
+        let val = Bytes::from(req.value);
+        self.store.put(row, timestamp, val);
+
+        Ok(Response::new(PutResponse {}))
+    }
+
     async fn get(&mut self, req: GetRequest) -> Result<Response<GetResponse>, Status> {
         let row = Row::new(Bytes::from(req.row));
         self.store
@@ -40,7 +54,7 @@ impl Beatrice for BeatriceState {
             .ok_or_else(|| Status::not_found("not found"))
     }
 
-    async fn put(&mut self, req: PutRequest) -> Result<Response<PutResponse>, Status> {
+    async fn delete(&mut self, req: DeleteRequest) -> Result<Response<DeleteResponse>, Status> {
         let row = Row::new(Bytes::from(req.row));
         let timestamp = match req.timestamp {
             0 => get_current_timestamp_millis().map_err(|e| {
@@ -48,10 +62,9 @@ impl Beatrice for BeatriceState {
             })?,
             t => t,
         };
-        let val = Bytes::from(req.value);
-        self.store.put(row, timestamp, val);
+        self.store.delete(row, timestamp);
 
-        Ok(Response::new(PutResponse {}))
+        Ok(Response::new(DeleteResponse {}))
     }
 
     async fn flush(&mut self, _req: FlushRequest) -> Result<Response<FlushResponse>, Status> {

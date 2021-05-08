@@ -47,8 +47,11 @@ impl Store {
     }
 
     pub fn put(&mut self, row: Row, timestamp: u64, val: Bytes) {
-        let value = Value::Val(val);
-        self.volatile.insert(row, timestamp, value);
+        self.volatile.insert(row, timestamp, Value::Val(val));
+    }
+
+    pub fn delete(&mut self, row: Row, timestamp: u64) {
+        self.volatile.insert(row, timestamp, Value::Del);
     }
 
     pub fn flush(&mut self, cache: bool) {

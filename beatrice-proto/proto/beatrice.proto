@@ -4,6 +4,7 @@ package beatrice;
 service Beatrice {
   rpc Put(PutRequest) returns (PutResponse);
   rpc Get(GetRequest) returns (GetResponse);
+  rpc Delete(DeleteRequest) returns (DeleteResponse);
   rpc Flush(FlushRequest) returns (FlushResponse);
 }
 
@@ -21,6 +22,13 @@ message GetResponse {
   uint64 timestamp = 1;
   bytes value = 2;
 }
+
+message DeleteRequest {
+  bytes row = 1;
+  uint64 timestamp = 2;
+}
+
+message DeleteResponse {}
 
 message FlushRequest { bool cache = 1; }
 

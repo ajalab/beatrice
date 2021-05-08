@@ -9,6 +9,10 @@ pub enum Command {
     Get {
         row: Bytes,
     },
+    Delete {
+        row: Bytes,
+        timestamp: Option<u64>,
+    },
     Flush {
         cache: bool,
     },
